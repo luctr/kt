@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
+    <title>List Products</title>
+
+</head>
+<body onload="findAllCategory()">
+<form id="add-product">
+    <table>
+        <tr>
+            <td>Name :</td>
+            <td><input type="text" id="name" placeholder="name"></td>
+        </tr>
+        <tr>
+            <td>Price:</td>
+            <td><input type="text" id="price" placeholder="price"></td>
+        </tr>
+        <tr>
+            <td>Quantity :</td>
+            <td><input type="text" id="quantity" placeholder="quantity"></td>
+        </tr>
+        <tr>
+            <td>Color :</td>
+            <td><input type="text" id="color" placeholder="color"></td>
+        </tr>
+        <tr>
+            <td>Description :</td>
+            <td><input type="text" id="description" placeholder="description"></td>
+        </tr>
+        <tr>
+            <td>Category :</td>
+            <td>
+                <select id="category">
+
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td></td>
+            <td><input type="submit" value="Add" onclick="addNewProduct()"></td>
+        </tr>
+    </table>
+</form>
+<h1>Products List</h1>
+<table id="productList">
+</table>
+<button onclick="successHandler()">Get All</button>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type="text/javascript">
+    function addNewProduct() {
+        let name = $('#name').val();
+        let price = $('#price').val();
+        let quantity = $('#quantity').val();
+        let color = $('#color').val();
+        let description = $('#description').val();
+        let category = $('#category').val();
+        let newProduct = {
+            name: name,
+            price: price,
+            quantity: quantity,
+            color: color,
+            description: description,
+            category: category
+        };
+        $.ajax({
+            type: "POST",
+            data: JSON.stringify(newProduct),
+            //tên API
+            url: "/smartphones",
+            //xử lý khi thành công
+            success: successHandler
+
+        });
+        //chặn sự kiện mặc định của thẻ
+        event.preventDefault();
+    }
+
+    function successHandler() {
+        $.ajax({
+            type: "GET",
+            url: "/products/find-all",
+            success: function (data) {
+                console.log()
+                let content = '    <tr>\n' +
+                    '        <td>Name</td>\n' +
+                    '        <td>Price</td>\n' +
+                    '        <td>Quantity</td>\n' +
+                    '        <td>Color</td>\n' +
+                    '        <td>Description</td>\n' +
+                    '        <td>Category</td>\n' +
+                    '    </tr>';
+                for (let i = 0; i < data.length; i++) {
+                    content += getProduct(data[i]);
+                }
+                document.getElementById('productList').innerHTML = content;
+            }
+        });
+    }
+
+    function findAllCategory() {
+        console.log('ddada')
+        $.ajax({
+            type: "GET",
+            url: "/categories",
+            success: function (data) {
+                let content = '';
+                for (let i = 0; i < data.length; i++) {
+                    content += getCategory(data[i]);
+                }
+                document.getElementById('category').innerHTML = content;
+            }
+
+        })
+    }
+
+    function onDelete(id) {
+        $.ajax({
+            type: "DELETE",
+            url: "/products/" + id,
+            success: successHandler
+        })
+    }
+
+    function onUpdate(id) {
+        $.ajax({
+            type: "PUT",
+            url: "/products//{id}/edit",
+            data: product,
+            success: () => alert('cap nhat thanh cong')
+        })
+
+    }
+
+    function getProduct(product) {
+        return `<tr>
+                <td >${product.name}</td>
+                <td >${product.price}</td>
+                <td >${product.quantity}</td>
+                <td >${product.color}</td>
+                <td >${product.description}</td>
+                <td >${product.category.name}</td>` +
+            `<td>
+                <button onclick="onUpdate(${product.id})" class="updateProducts >
+                Update</button>
+                </td>
+                <td>
+                <button onclick="onDelete(${product.id})" class="deleteProducts" >Delete</button>
+                </td>
+                </tr>`;
+    }
+
+    function getCategory(category) {
+        return `<option value="${category.id}">${category.name}</option>`;
+    }
+</script>
+</body>
+</html>
