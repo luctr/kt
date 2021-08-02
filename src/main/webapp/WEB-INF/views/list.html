@@ -32,7 +32,6 @@
             <td>Category :</td>
             <td>
                 <select id="category">
-
                 </select>
             </td>
         </tr>
@@ -45,9 +44,15 @@
 <h1>Products List</h1>
 <table id="productList">
 </table>
-<button onclick="successHandler()">Get All</button>
+<form id ="form"></form>
+<!--<button onclick="successHandler()">Get All</button>-->
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <script type="text/javascript">
+    window.onload = function() {
+        findAllCategory();
+        successHandler();
+    }
+
     function addNewProduct() {
         let name = $('#name').val();
         let price = $('#price').val();
@@ -61,25 +66,28 @@
             quantity: quantity,
             color: color,
             description: description,
-            category: category
+            category: {
+                id : category
+            }
         };
         $.ajax({
+            headers: { 'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
             type: "POST",
             data: JSON.stringify(newProduct),
-            //tên API
-            url: "/smartphones",
-            //xử lý khi thành công
+            url: "/products",
             success: successHandler
 
         });
-        //chặn sự kiện mặc định của thẻ
+        //chặn sự kiện
         event.preventDefault();
     }
 
     function successHandler() {
         $.ajax({
             type: "GET",
-            url: "/products/find-all",
+            url: "/products",
             success: function (data) {
                 console.log()
                 let content = '    <tr>\n' +
@@ -97,9 +105,7 @@
             }
         });
     }
-
     function findAllCategory() {
-        console.log('ddada')
         $.ajax({
             type: "GET",
             url: "/categories",
@@ -113,7 +119,20 @@
 
         })
     }
+    function findAllCategory1() {
+        $.ajax({
+            type: "GET",
+            url: "/categories",
+            success: function (data) {
+                let content = '';
+                for (let i = 0; i < data.length; i++) {
+                    content += getCategory(data[i]);
+                }
+                document.getElementById('category1').innerHTML = content;
+            }
 
+        })
+    }
     function onDelete(id) {
         $.ajax({
             type: "DELETE",
@@ -121,33 +140,138 @@
             success: successHandler
         })
     }
-
-    function onUpdate(id) {
+    function getProduct(product) {
+        return `<tr>`+
+                `<td >${product.name}</td>`+
+                `<td >${product.price}</td>`  +
+                `<td >${product.quantity}</td>` +
+                `<td >${product.color}</td>` +
+                `<td >${product.description}</td>` +
+                `<td >${product.category.name}</td>` +
+                `<td>
+                <button onclick="showFormEdit(${product.id})" class="updateProducts" >
+                Update
+                </button>
+                </td>`+
+                `<td>
+                <button onclick="onDelete(${product.id})" class="deleteProducts" >Delete</button>
+                </td>` +
+                `</tr>`;
+    }
+    // function onUpdate(id) {
+    //     $.ajax({
+    //         type: "PUT",
+    //         url: "/products/edit",
+    //         data: JSON.stringify(product),
+    //         success: () => alert('cap nhat thanh cong')
+    //     })
+    //
+    // }
+    function showFormEdit(id) {
+        let str = '<h3>Edit Product</h3>' +
+            '<input type="hidden" id="id">' +
+            '<table>' +
+            '<tr>' +
+            '<td>Name:</td>' +
+            '<td><input type="text" id="name1" placeholder="Name"></td>' +
+            '</tr>' +
+            '<tr>' +
+            '<td>Color:</td>' +
+            '<td><input type="text" id="color1" placeholder="Color"></td>' +
+            '</tr>' +
+            '<tr>' +
+            '<td>Price:</td>' +
+            '<td><input type="text" id="price1" placeholder="Price"></td>' +
+            '</tr>' +
+            '<tr>' +
+            '<td>Quantity:</td>' +
+            '<td><input type="text" id="quantity1" placeholder="Quantity"></td>' +
+            '</tr>' +
+            '<tr>' +
+            '<td>Description:</td>' +
+            '<td><input type="text" id="description1" placeholder="Description"></td>' +
+            '</tr>' +
+            '<tr>' +
+            '<td>Category:</td>' +
+            '<td><select id="category1">' +
+                findAllCategory1() +
+            '</select></td>' +
+            '</tr>' +
+            '<tr>' +
+            '<td></td>' +
+            '<td><input type="button" value="Update" onclick="saveEdit()"></td>' +
+            '</tr>' +
+            '</table>';
+        document.getElementById("form").innerHTML = str;
         $.ajax({
-            type: "PUT",
-            url: "/products//{id}/edit",
-            data: product,
-            success: () => alert('cap nhat thanh cong')
-        })
-
+            type: "GET",
+            //tên API
+            url: "/products/" + id,
+            //xử lý khi thành công
+            success: function (data) {
+                let idData = id;
+                let name = data.name;
+                let quantity = data.quantity;
+                let description = data.description;
+                let price = data.price;
+                let color = data.color;
+                let categoryId = data.category.id;
+                document.getElementById("id").value = idData;
+                document.getElementById("name1").value = name;
+                document.getElementById("quantity1").value = quantity;
+                document.getElementById("description1").value = description;
+                document.getElementById("price1").value = price;
+                document.getElementById("color1").value = color;
+                document.getElementById("category1").value = categoryId;
+            }
+        });
     }
 
-    function getProduct(product) {
-        return `<tr>
-                <td >${product.name}</td>
-                <td >${product.price}</td>
-                <td >${product.quantity}</td>
-                <td >${product.color}</td>
-                <td >${product.description}</td>
-                <td >${product.category.name}</td>` +
-            `<td>
-                <button onclick="onUpdate(${product.id})" class="updateProducts >
-                Update</button>
-                </td>
-                <td>
-                <button onclick="onDelete(${product.id})" class="deleteProducts" >Delete</button>
-                </td>
-                </tr>`;
+    // function showFormEdit(id) {
+    //     $.ajax({
+    //         type: "GET",
+    //         url: "/products/" + id,
+    //         success:
+    //             function (data) {
+    //             document.getElementById("form").innerHTML =
+    //                 `<input type="text" placeholder="name" id="name" value="` + data.name + '">\n' +
+    //                 `    <input type="number" placeholder="price" id="price" value="` + data.price + `">\n` +
+    //                 `    <input type="number" placeholder="quantity" id="quantity" value="` + data.quantity + '">\n' +
+    //                 `    <input type="text" placeholder="color" id="color" value="` + data.color + '">\n' +
+    //                 `    <input type="text" placeholder="description" id="description" value="` + data.description + '">\n' +
+    //                 `    <select id="category">`+
+    //                         findAllCategory() +
+    //                 `     </select>` +
+    //                 `    <button onclick="saveEdit(` + data.id + `)">Save</button>`
+    //         }
+    //     })
+    // }
+
+    function saveEdit() {
+        let id = document.getElementById("id").value;
+        let product = {
+            name: document.getElementById("name1").value,
+            price: document.getElementById("price1").value,
+            quantity: document.getElementById("quantity1").value,
+            color: document.getElementById("color1").value,
+            description: document.getElementById("description1").value,
+            category:{
+                id : document.getElementById("category1").value
+            }
+        }
+        $.ajax({
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            type: "PUT",
+            url: "/products/edit/" + id ,
+            data: JSON.stringify(product),
+            success: successHandler,
+
+        });
+        // document.getElementById("form").innerHTML = '    <button onclick="showFormCreate()">Add</button>\n' +
+        //     '    <button onclick="showFormSearch()">Search</button>'
     }
 
     function getCategory(category) {

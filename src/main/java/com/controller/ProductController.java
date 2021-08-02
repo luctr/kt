@@ -6,8 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
-
 import java.util.Optional;
 
 @RestController
@@ -17,25 +15,31 @@ public class ProductController {
     @Autowired
     private IProductService productService;
 
-    @GetMapping("find-all")
+    @GetMapping
     public ResponseEntity<Iterable<Product>> findAll(){
         Iterable<Product> products = productService.findAll();
         return new ResponseEntity<>(products, HttpStatus.OK);
     }
 
+
     @PostMapping
     public ResponseEntity<Product> createProduct(@RequestBody Product product) {
         return new ResponseEntity<>(productService.save(product), HttpStatus.CREATED);
     }
+    @GetMapping("/{id}")
+    public ResponseEntity<Product> findOne(@PathVariable Long id){
+        return new ResponseEntity<>(productService.findById(id).get(),HttpStatus.OK);
+    }
 
-    @PutMapping("/{id}/edit")
-    public ResponseEntity<?> updateProduct(@PathVariable Long id,@RequestBody Product product){
+    @PutMapping("/edit/{id}")
+    public ResponseEntity<Product> updateProduct(@PathVariable Long id,@RequestBody Product product){
         Optional<Product> products = productService.findById(id);
         if (!products.isPresent()){
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }else {
-            productService.findById(products.get().getId());
-            return new ResponseEntity<>(productService.save(product),HttpStatus.OK);
+            product.setId(id);
+            productService.save(product);
+            return new ResponseEntity<>(HttpStatus.OK);
         }
     }
 
