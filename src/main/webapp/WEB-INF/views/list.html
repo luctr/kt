@@ -6,11 +6,13 @@
 
 </head>
 <body onload="findAllCategory()">
+
 <form id="add-product">
     <table>
         <tr>
             <td>Name :</td>
             <td><input type="text" id="name" placeholder="name"></td>
+            <td id="message"></td>
         </tr>
         <tr>
             <td>Price:</td>
@@ -60,6 +62,9 @@
         let color = $('#color').val();
         let description = $('#description').val();
         let category = $('#category').val();
+        if (name == " "){
+            document.getElementById('message').innerHTML  = `<p> acvc</p>`
+        }
         let newProduct = {
             name: name,
             price: price,
@@ -71,6 +76,7 @@
             }
         };
         $.ajax({
+            //chuyển dữ liệu vè json
             headers: { 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
@@ -89,7 +95,7 @@
             type: "GET",
             url: "/products",
             success: function (data) {
-                console.log()
+                console.log(data)
                 let content = '    <tr>\n' +
                     '        <td>Name</td>\n' +
                     '        <td>Price</td>\n' +
